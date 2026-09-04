@@ -24,6 +24,13 @@ html:not([data-theme="light"]) {
   --connector-family: #9cdef2;
   --connector-partner: #ed9da7;
   --connector-sibling: #9bcc9f;
+  --avatar-female-fill: #173549;
+  --avatar-female-stroke: #ed9da7;
+  --avatar-male-fill: #123d5a;
+  --avatar-male-stroke: #9cdef2;
+  --avatar-unspecified-fill: #0e3048;
+  --avatar-unspecified-stroke: #bfc8cb;
+  --avatar-initial: #e5e2e1;
 }
 
 html[data-theme="light"] {
@@ -52,6 +59,13 @@ html[data-theme="light"] {
   --connector-family: #9c825f;
   --connector-partner: #b47c76;
   --connector-sibling: #78956c;
+  --avatar-female-fill: #f4e4e8;
+  --avatar-female-stroke: #985c6d;
+  --avatar-male-fill: #e2ebf2;
+  --avatar-male-stroke: #56738d;
+  --avatar-unspecified-fill: #ede5d8;
+  --avatar-unspecified-stroke: #796f63;
+  --avatar-initial: #302b25;
 }
 
 html {
@@ -61,6 +75,24 @@ html {
 body {
   background: var(--tree-canvas);
   color: var(--text);
+}
+
+.person-avatar[data-gender="female"] {
+  background: var(--avatar-female-fill);
+  border-color: var(--avatar-female-stroke);
+  color: var(--avatar-initial);
+}
+
+.person-avatar[data-gender="male"] {
+  background: var(--avatar-male-fill);
+  border-color: var(--avatar-male-stroke);
+  color: var(--avatar-initial);
+}
+
+.person-avatar[data-gender="unspecified"] {
+  background: var(--avatar-unspecified-fill);
+  border-color: var(--avatar-unspecified-stroke);
+  color: var(--avatar-initial);
 }
 
 html:not([data-theme="light"]) .button.primary {

@@ -249,14 +249,15 @@ const personSkeletons = (
   language: AppData["language"],
   resolveAvatar: AvatarImageResolver,
   lifeSummaryOptions?: SceneLifeSummaryOptions,
-  colors: SceneColors = HERITG_SCENE_COLORS
+  colors: SceneColors = HERITG_SCENE_COLORS,
+  theme: UiTheme = "light"
 ): ExcalidrawElementSkeleton[] => {
   const key = encodedId(person.id);
   const groupIds = [`heritg:person:${key}`];
   const link = `#heritg-person=${key}`;
   const data = personData(person);
   const selected = person.id === selectedPersonId;
-  const appearance = personAvatarAppearance(person.gender);
+  const appearance = personAvatarAppearance(person.gender, theme);
   const showRole = Boolean(selectedPersonId && person.role);
   const avatarSize = LAYOUT_METRICS.avatarDiameter;
   const innerSize = LAYOUT_METRICS.innerAvatarDiameter;
@@ -587,7 +588,7 @@ export function projectLayoutToScene(
   const personSkeletonValues: ExcalidrawElementSkeleton[] = [];
   for (const person of people) {
     personSkeletonValues.push(...personSkeletons(
-      person, files, selectedPersonId, language, resolveAvatar, lifeSummaryOptions, colors
+      person, files, selectedPersonId, language, resolveAvatar, lifeSummaryOptions, colors, theme
     ));
   }
   const personElements = convertToExcalidrawElements(

@@ -247,7 +247,7 @@ export function PersonEditor({
             {person ? (
               <PersonAvatar person={{ ...person, displayName: name || person.displayName, photoDataUrl }} size={76} />
             ) : (
-              <span className="person-avatar" style={{ width: 104, height: 104 }} aria-hidden="true">
+              <span className="person-avatar" data-gender={gender} style={{ width: 104, height: 104 }} aria-hidden="true">
                 {photoDataUrl ? <img alt="" src={photoDataUrl} /> : (name.trim().charAt(0).toUpperCase() || "?")}
               </span>
             )}

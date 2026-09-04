@@ -1,5 +1,5 @@
 .svg-canvas-host {
-  background: #f5f5f3;
+  background: var(--tree-canvas);
   cursor: default;
   overflow: hidden;
   position: relative;
@@ -27,11 +27,11 @@
 
 .canvas-preparing {
   align-items: center;
-  background: rgb(255 255 255 / 88%);
-  border: 1px solid rgb(48 43 37 / 10%);
+  background: color-mix(in srgb, var(--base) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
   border-radius: 999px;
-  box-shadow: 0 8px 24px rgb(48 43 37 / 10%);
-  color: #62594f;
+  box-shadow: var(--shadow-soft);
+  color: var(--subtle);
   display: flex;
   font-size: 0.82rem;
   font-weight: 650;
@@ -55,15 +55,15 @@
 
 .svg-connector.family,
 .svg-connector.parent {
-  stroke: #9c825f;
+  stroke: var(--connector-family);
 }
 
 .svg-connector.partner {
-  stroke: #b47c76;
+  stroke: var(--connector-partner);
 }
 
 .svg-connector.sibling {
-  stroke: #78956c;
+  stroke: var(--connector-sibling);
   stroke-dasharray: 6 7;
 }
 
@@ -72,14 +72,14 @@
 }
 
 .svg-relationship-label rect {
-  fill: #f5f5f3;
+  fill: var(--tree-canvas);
 }
 
 .svg-relationship-label text,
 .svg-person-city,
 .svg-person-life,
 .svg-person-role {
-  fill: #796f63;
+  fill: var(--subtle);
   font-size: 12px;
   font-weight: 500;
 }
@@ -98,8 +98,43 @@
 
 .svg-person-name,
 .svg-person-initial {
-  fill: #302b25;
+  fill: var(--text);
   font-weight: 700;
+}
+
+.svg-person-avatar {
+  fill: var(--avatar-unspecified-fill);
+  stroke: var(--avatar-unspecified-stroke);
+}
+
+.svg-person-avatar-inner {
+  fill: var(--avatar-unspecified-fill);
+}
+
+.svg-person[data-gender="female"] .svg-person-avatar {
+  fill: var(--avatar-female-fill);
+  stroke: var(--avatar-female-stroke);
+}
+
+.svg-person[data-gender="female"] .svg-person-avatar-inner {
+  fill: var(--avatar-female-fill);
+}
+
+.svg-person[data-gender="male"] .svg-person-avatar {
+  fill: var(--avatar-male-fill);
+  stroke: var(--avatar-male-stroke);
+}
+
+.svg-person[data-gender="male"] .svg-person-avatar-inner {
+  fill: var(--avatar-male-fill);
+}
+
+.svg-person.selected .svg-person-avatar {
+  stroke: var(--brand);
+}
+
+.svg-person-initial {
+  fill: var(--avatar-initial);
 }
 
 .svg-person-initial {

@@ -73,6 +73,7 @@ const PersonNode = ({
     <g className={`svg-person${selected ? " selected" : ""}`} data-gender={person.gender} data-person-id={person.id}>
       <title>{name.fullName}</title>
       <circle
+        className="svg-person-avatar"
         cx={person.x}
         cy={person.y}
         fill={appearance.fill}
@@ -82,6 +83,7 @@ const PersonNode = ({
       />
       <>
         <circle
+          className="svg-person-avatar-inner"
           cx={person.x}
           cy={person.y}
           fill={appearance.fill}

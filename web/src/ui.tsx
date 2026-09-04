@@ -2,7 +2,6 @@ import { LoaderCircle, X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { isValidAvatarImage } from "./avatar";
-import { personAvatarAppearance } from "./personAvatarAppearance";
 import type { Person } from "./types";
 import type { Translator } from "./i18n";
 
@@ -174,15 +173,12 @@ export function SidePanel({
 }
 
 export function PersonAvatar({ person, size = 44 }: { person: Person; size?: number }) {
-  const appearance = personAvatarAppearance(person.gender);
   return (
     <span
       aria-hidden="true"
       className="person-avatar"
       data-gender={person.gender}
       style={{
-        backgroundColor: appearance.fill,
-        borderColor: appearance.stroke,
         height: size,
         width: size
       }}
