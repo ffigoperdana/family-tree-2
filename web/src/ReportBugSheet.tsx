@@ -51,7 +51,7 @@ export function ReportBugSheet({
             target="_blank"
           >
             <span className="report-channel-icon"><MessageCircle aria-hidden="true" size={22} /></span>
-            <span><strong>WhatsApp</strong><small>+62 851-8833-8123</small></span>
+            <span><strong>WhatsApp</strong><small>+62 812-1619-5308</small></span>
           </a>
           <a
             className="report-channel telegram"
@@ -61,7 +61,7 @@ export function ReportBugSheet({
             target="_blank"
           >
             <span className="report-channel-icon"><Send aria-hidden="true" size={21} /></span>
-            <span><strong>Telegram</strong><small>@robihamanto</small></span>
+            <span><strong>Telegram</strong><small>@lwsyrs</small></span>
           </a>
         </div>
         <p className="report-channel-help">{t("reportChannelHelp")}</p>

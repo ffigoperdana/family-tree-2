@@ -82,29 +82,6 @@ afterEach(() => {
 });
 
 describe("TreeSidebar file import", () => {
-  it("shows signed-in identity between the brand and family trees", () => {
-    act(() => root.render(
-      <TreeSidebar
-        account={{ id: "account-1", name: "Test User", email: "person@example.com", expiresAt: "2026-09-23T10:10:00.000Z" }}
-        actions={actions}
-        data={data}
-        onClose={vi.fn()}
-        onError={vi.fn()}
-        onImported={vi.fn()}
-        onShowHelp={vi.fn()}
-        onShowFamily={vi.fn()}
-        onShowPrivacy={vi.fn()}
-        onReportBug={vi.fn()}
-        open
-        t={t}
-      />
-    ));
-
-    const identity = container.querySelector(".sidebar-brand + .sidebar-account");
-    expect(identity?.textContent).toContain("Test User");
-    expect(identity?.textContent).toContain("person@example.com");
-  });
-
   it("uses an unrestricted native file input for iOS and iPadOS", () => {
     act(() => root.render(
       <TreeSidebar
@@ -114,7 +91,6 @@ describe("TreeSidebar file import", () => {
         onError={vi.fn()}
         onImported={vi.fn()}
         onShowHelp={vi.fn()}
-        onShowFamily={vi.fn()}
         onShowPrivacy={vi.fn()}
         onReportBug={vi.fn()}
         open
@@ -139,7 +115,6 @@ describe("TreeSidebar file import", () => {
         onError={vi.fn()}
         onImported={vi.fn()}
         onReportBug={onReportBug}
-        onShowFamily={vi.fn()}
         onShowHelp={vi.fn()}
         onShowPrivacy={vi.fn()}
         open
@@ -155,32 +130,6 @@ describe("TreeSidebar file import", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("opens Heritg Family from the sidebar utility", () => {
-    const onClose = vi.fn();
-    const onShowFamily = vi.fn();
-    act(() => root.render(
-      <TreeSidebar
-        actions={actions}
-        data={data}
-        onClose={onClose}
-        onError={vi.fn()}
-        onImported={vi.fn()}
-        onReportBug={vi.fn()}
-        onShowFamily={onShowFamily}
-        onShowHelp={vi.fn()}
-        onShowPrivacy={vi.fn()}
-        open
-        t={t}
-      />
-    ));
-
-    const button = [...container.querySelectorAll<HTMLButtonElement>("button")]
-      .find((candidate) => candidate.textContent?.includes("heritgFamily"));
-    act(() => button?.click());
-
-    expect(onShowFamily).toHaveBeenCalledOnce();
-    expect(onClose).toHaveBeenCalledOnce();
-  });
 });
 
 describe("TreeSidebar family copies", () => {
@@ -195,7 +144,6 @@ describe("TreeSidebar family copies", () => {
         onClose={onClose}
         onError={vi.fn()}
         onImported={vi.fn()}
-        onShowFamily={vi.fn()}
         onShowHelp={vi.fn()}
         onShowPrivacy={vi.fn()}
         onReportBug={vi.fn()}

@@ -70,7 +70,7 @@ const PersonNode = ({
   const city = personCitySummary(person);
 
   return (
-    <g className="svg-person" data-gender={person.gender} data-person-id={person.id}>
+    <g className={`svg-person${selected ? " selected" : ""}`} data-gender={person.gender} data-person-id={person.id}>
       <title>{name.fullName}</title>
       <circle
         cx={person.x}
@@ -225,6 +225,7 @@ export function SvgTreeScene({
       {connectionPlan.families.flatMap((family) =>
         branchJunctions(family.segments).map((point, index) => (
           <circle
+            className="svg-family-junction"
             cx={point.x}
             cy={point.y}
             fill={CONNECTOR_STYLE.familyColor}
@@ -236,6 +237,7 @@ export function SvgTreeScene({
       {connectionPlan.crossings.map((point, index) => (
         <g key={`${point.x}:${point.y}:${index}`}>
           <line
+            className="svg-crossing-mask"
             stroke={SCENE_COLORS.canvas}
             strokeLinecap="butt"
             strokeWidth={CONNECTOR_STYLE.width + 4}
@@ -252,6 +254,7 @@ export function SvgTreeScene({
             y2={point.y}
           />
           <path
+            className="svg-crossing-mask"
             d={crossingBridgePath(point)}
             fill="none"
             stroke={SCENE_COLORS.canvas}

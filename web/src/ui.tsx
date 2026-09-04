@@ -230,8 +230,8 @@ export function ErrorNotice({ message }: { message?: string }) {
 export function LoadingScreen({ t }: { t: Translator }) {
   return (
     <main className="loading-screen">
-      <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/pwa-192.png" width={192} />
-      <strong>Heritg</strong>
+      <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/soenarto-tree-mark.svg" width={192} />
+      <strong>Soenarto Tree</strong>
       <p>{t("loading")}</p>
     </main>
   );

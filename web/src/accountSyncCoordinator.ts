@@ -3,7 +3,7 @@ import { downloadRemoteTreeSnapshot, uploadLocalTreeSnapshot } from "./accountSy
 import type { SyncMapping } from "./db";
 import { localizedDefaultTreeTitle, replaceAppData } from "./domain";
 import { mergeImportedData } from "./portability";
-import type { SyncArchiveSummary, SyncResolution } from "./proTypes";
+import type { SyncArchiveSummary, SyncResolution } from "./accountSyncTypes";
 import type { AppData } from "./types";
 
 interface CloudTree {

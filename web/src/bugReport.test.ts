@@ -39,7 +39,7 @@ describe("bug report diagnostics", () => {
       generatedAt: "2026-08-18T12:00:00.000Z"
     }, environment);
 
-    expect(message).toContain("App: Heritg Web");
+    expect(message).toContain("App: Soenarto Tree Web");
     expect(message).toContain("App Version: 1.3.4 (193)");
     expect(message).toContain("Build Version: abc1234-202608231530");
     expect(message).toContain("Subscription Level: Free (local-only Web)");
@@ -62,12 +62,12 @@ describe("bug report diagnostics", () => {
     expect(detectOperatingSystem(android)).toBe("Android 14");
     expect(detectBrowser(android.userAgent)).toBe("Google Chrome 126.0.0.0");
 
-    const message = "Heritg bug report\nDevice: Android";
+    const message = "Soenarto Tree bug report\nDevice: Android";
     expect(bugReportUrl("whatsapp", message)).toBe(
-      `https://wa.me/6285188338123?text=${encodeURIComponent(message)}`
+      `https://wa.me/6281216195308?text=${encodeURIComponent(message)}`
     );
     expect(bugReportUrl("telegram", message)).toBe(
-      `https://t.me/robihamanto?text=${encodeURIComponent(message)}`
+      `https://t.me/lwsyrs?text=${encodeURIComponent(message)}`
     );
   });
 });

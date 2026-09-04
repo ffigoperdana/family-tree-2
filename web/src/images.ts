@@ -224,7 +224,7 @@ export function safeFilename(name: string, extension?: string): string {
     base = base.slice(0, -(suffix.length + 1));
   }
   if (/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
-  base = base.slice(0, 100 - (suffix ? suffix.length + 1 : 0)).replace(/[. ]+$/g, "") || "heritg-export";
+  base = base.slice(0, 100 - (suffix ? suffix.length + 1 : 0)).replace(/[. ]+$/g, "") || "soenarto-tree-export";
   return suffix ? `${base}.${suffix}` : base;
 }
 

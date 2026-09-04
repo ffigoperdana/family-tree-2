@@ -1,4 +1,4 @@
-import { Cloud, Download, ExternalLink, KeyRound, ShieldCheck, WifiOff, type LucideIcon } from "lucide-react";
+import { Download, ExternalLink, KeyRound, ShieldCheck, WifiOff, type LucideIcon } from "lucide-react";
 
 import { AppVersion } from "./AppVersion";
 import type { Translator } from "./i18n";
@@ -6,19 +6,15 @@ import { SidePanel } from "./ui";
 
 export function PrivacyPanel({
   onClose,
-  syncEnabled = false,
   t
 }: {
   onClose: () => void;
-  syncEnabled?: boolean;
   t: Translator;
 }) {
   const items: ReadonlyArray<readonly [LucideIcon, string, string]> = [
     [ShieldCheck, t("privacyStorageTitle"), t("privacyStorageDetail")],
     [KeyRound, t("privacyKeyTitle"), t("privacyKeyDetail")],
-    syncEnabled
-      ? [Cloud, t("privacySyncTitle"), t("privacySyncDetail")]
-      : [WifiOff, t("privacyLocalTitle"), t("privacyLocalDetail")],
+    [WifiOff, t("privacyLocalTitle"), t("privacyLocalDetail")],
     [Download, t("privacyExportTitle"), t("privacyExportDetail")]
   ];
 
@@ -44,7 +40,7 @@ export function PrivacyPanel({
       </div>
       <a
         className="privacy-details-link"
-        href="https://family.heritg.us/blog/e2e-encryption"
+        href="/terms/"
         rel="noopener noreferrer"
         target="_blank"
       >

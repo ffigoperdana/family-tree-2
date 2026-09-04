@@ -1,0 +1,9 @@
+.git
+.github
+.agents
+web/node_modules
+web/dist
+server/node_modules
+server/.env
+secrets
+*.log

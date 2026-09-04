@@ -2,15 +2,18 @@ import {
   Bug,
   CircleHelp,
   CopyPlus,
+  Download,
+  LogIn,
+  LogOut,
   MoreHorizontal,
   Pencil,
   Plus,
   Search,
-  ShieldCheck,
   Trash2,
   TreePine,
   Upload,
   UserRound,
+  UsersRound,
   X
 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
@@ -20,17 +23,14 @@ import {
   heritgArchiveProtection,
   importHeritgArchive
 } from "./heritgArchive";
+import { useAuth } from "./auth";
 import { FocusedTreeCopyDialog } from "./FocusedTreeCopyDialog";
-import { FamilyPlusMark, FamilyPlusWordmark } from "./FamilyPlusMark";
 import { PasswordField } from "./PasswordField";
-import { importGedcom, importHeritgBackup, MAX_PORTABILITY_BYTES, validateAppData } from "./portability";
-import type { ProUser } from "./proTypes";
+import { importHeritgBackup, MAX_PORTABILITY_BYTES } from "./portability";
 import type { AppActions } from "./store";
 import type { AppData, FamilyTree } from "./types";
 import type { Translator } from "./i18n";
 import { ConfirmDialog, ErrorNotice, Modal } from "./ui";
-
-const GEDCOM_FILE_SUFFIX = /\.(?:ged|gedcom)(?:\.txt)?$/i;
 
 type EditState =
   | { kind: "create"; value: string }
@@ -41,13 +41,13 @@ interface TreeSidebarProps {
   actions: AppActions;
   open: boolean;
   t: Translator;
-  account?: ProUser;
   onClose: () => void;
   onError: (message: string) => void;
   onImported: () => void;
   onShowHelp: () => void;
-  onShowFamily: () => void;
-  onShowPrivacy: () => void;
+  onShowInstall?: () => void;
+  onShowPrivacy?: () => void;
+  onShowAdmin?: () => void;
   onReportBug: () => void;
 }
 
@@ -62,15 +62,19 @@ export function TreeSidebar({
   actions,
   open,
   t,
-  account,
   onClose,
   onError,
   onImported,
   onShowHelp,
-  onShowFamily,
+  onShowInstall,
   onShowPrivacy,
+  onShowAdmin,
   onReportBug
 }: TreeSidebarProps) {
+  const auth = useAuth();
+  const remoteMode = auth.enabled;
+  const canCreate = Boolean(!remoteMode || auth.user);
+  const isAdmin = auth.user?.role === "admin";
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim().toLocaleLowerCase());
   const [menuTreeId, setMenuTreeId] = useState<string>();
@@ -112,7 +116,7 @@ export function TreeSidebar({
       throw new Error("Choose a non-empty family file smaller than 32 MB.");
     }
     const lowerName = file.name.toLowerCase();
-    if (lowerName.endsWith(".heritg")) {
+    if (lowerName.endsWith(".soenarto") || lowerName.endsWith(".heritg")) {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const protection = heritgArchiveProtection(bytes);
       if (protection === "encrypted" || protection === "legacy-encrypted") {
@@ -130,25 +134,22 @@ export function TreeSidebar({
       }
     } else if (lowerName.endsWith(".json")) {
       actions.replaceData(importHeritgBackup(await file.text(), { into: data }));
-    } else if (GEDCOM_FILE_SUFFIX.test(lowerName)) {
-      const imported = importGedcom(await file.text(), {
-        title: file.name.replace(GEDCOM_FILE_SUFFIX, ""),
-        language: data.language
-      });
-      actions.replaceData(validateAppData({
-        ...data,
-        trees: [...data.trees, ...imported.trees],
-        people: [...data.people, ...imported.people],
-        relationships: [...data.relationships, ...imported.relationships],
-        selectedTreeId: imported.selectedTreeId,
-        viewports: { ...data.viewports, ...imported.viewports }
-      }));
     } else {
-      throw new Error("Choose a .heritg archive, HERITG JSON backup, .ged, or .gedcom file.");
+      throw new Error("Choose a .soenarto encrypted archive or JSON family backup file.");
     }
     onImported();
     onClose();
   };
+
+  const canManageTree = (tree: FamilyTree) => {
+    if (!remoteMode) return true;
+    if (!auth.user) return false;
+    return tree.kind === "canonical"
+      ? auth.user.role === "admin"
+      : tree.ownerId === auth.user.id;
+  };
+
+  const canCopyTree = (tree: FamilyTree, count: number) => canCreate && count > 0 && Boolean(tree.kind !== "canonical" || auth.user);
 
   const unlockArchive = async () => {
     if (!pendingArchive || !archivePassword || isUnlocking) return;
@@ -177,9 +178,9 @@ export function TreeSidebar({
         id="tree-navigation"
       >
         <div className="sidebar-brand">
-          <img alt="" aria-hidden="true" className="brand-mark" height={192} src={`${import.meta.env.BASE_URL}pwa-192.png`} width={192} />
+          <img alt="" aria-hidden="true" className="brand-mark" height={192} src={`${import.meta.env.BASE_URL}soenarto-tree-mark.svg`} width={192} />
           <div>
-            <h1>Heritg</h1>
+            <h1>Soenarto Tree</h1>
             <p>{t("appTagline")}</p>
           </div>
           <button
@@ -192,26 +193,16 @@ export function TreeSidebar({
           </button>
         </div>
 
-        {account && (account.name || account.email) ? (
-          <div aria-label={t("account")} className="sidebar-account">
-            <UserRound aria-hidden="true" size={18} />
-            <span>
-              {account.name ? <strong>{account.name}</strong> : null}
-              {account.email ? <small>{account.email}</small> : null}
-            </span>
-          </div>
-        ) : null}
-
         <div className="sidebar-heading">
           <h2>{t("familyTrees")}</h2>
-          <button
+          {canCreate ? <button
             aria-label={t("newTree")}
             className="icon-button quiet small"
             onClick={() => setEdit({ kind: "create", value: suggestedTitle() })}
             type="button"
           >
             <Plus aria-hidden="true" size={18} />
-          </button>
+          </button> : null}
         </div>
         <label className="sidebar-search">
           <Search aria-hidden="true" size={17} />
@@ -227,6 +218,8 @@ export function TreeSidebar({
         <div className="tree-list">
           {trees.map((tree) => {
             const count = data.people.filter((person) => person.treeId === tree.id).length;
+            const manage = canManageTree(tree);
+            const copy = canCopyTree(tree, count);
             return (
               <div className={`tree-row ${tree.id === data.selectedTreeId ? "active" : ""}`} key={tree.id}>
                 <button
@@ -244,7 +237,7 @@ export function TreeSidebar({
                     <span>{t("peopleCount", { count })} · {treeDate(tree.updatedAt, data.language)}</span>
                   </span>
                 </button>
-                <div className="tree-menu-wrap">
+                {manage || copy ? <div className="tree-menu-wrap">
                   <button
                     aria-expanded={menuTreeId === tree.id}
                     aria-label={`${tree.title}: ${t("treeActions")}`}
@@ -256,33 +249,33 @@ export function TreeSidebar({
                   </button>
                   {menuTreeId === tree.id ? (
                     <div className="tree-menu">
-                      <button onClick={() => {
+                      {copy ? <button onClick={() => {
                         setCopying(tree);
                         setMenuTreeId(undefined);
                       }} type="button" disabled={count === 0}>
                         <CopyPlus aria-hidden="true" size={15} /> {t("makeFamilyCopy")}
-                      </button>
-                      <button onClick={() => {
+                      </button> : null}
+                      {manage && tree.kind !== "canonical" ? <button onClick={() => {
                         setEdit({ kind: "rename", tree, value: tree.title });
                         setMenuTreeId(undefined);
                       }} type="button">
                         <Pencil aria-hidden="true" size={15} /> {t("rename")}
-                      </button>
-                      <button className="danger-text" onClick={() => {
+                      </button> : null}
+                      {manage && tree.kind !== "canonical" ? <button className="danger-text" onClick={() => {
                         setDeleting(tree);
                         setMenuTreeId(undefined);
                       }} type="button">
                         <Trash2 aria-hidden="true" size={15} /> {t("delete")}
-                      </button>
+                      </button> : null}
                     </div>
                   ) : null}
-                </div>
+                </div> : null}
               </div>
             );
           })}
         </div>
 
-        <div className="sidebar-actions">
+        {canCreate ? <div className="sidebar-actions">
           <button className="button primary full" onClick={() =>
             setEdit({ kind: "create", value: suggestedTitle() })
           } type="button">
@@ -302,16 +295,32 @@ export function TreeSidebar({
               type="file"
             />
           </label>
-        </div>
+        </div> : null}
         <div className="sidebar-utilities">
-          <button className="family-plus-navigation" onClick={() => { onShowFamily(); onClose(); }} type="button">
-             <FamilyPlusMark size={20} />
-             <span><strong><FamilyPlusWordmark /></strong><small>{t("heritgFamilyNavigationDetail")}</small></span>
+          <button onClick={() => { (onShowInstall ?? onShowPrivacy)?.(); onClose(); }} type="button">
+            <Download aria-hidden="true" size={17} />
+            <span><strong>{t("installAppTitle")}</strong><small>{t("installAppIntro")}</small></span>
           </button>
-          <button onClick={() => { onShowPrivacy(); onClose(); }} type="button">
-            <ShieldCheck aria-hidden="true" size={17} />
-            <span><strong>{t("privacyProtection")}</strong><small>{t("protectedOnDevice")}</small></span>
-          </button>
+          {remoteMode && !auth.user ? <>
+            <button onClick={() => { window.location.assign("/login/admin"); }} type="button">
+              <LogIn aria-hidden="true" size={17} />
+              <span><strong>{t("loginAdmin")}</strong><small>{t("loginAdminDetail")}</small></span>
+            </button>
+            <button onClick={() => { window.location.assign("/login/user"); }} type="button">
+              <UserRound aria-hidden="true" size={17} />
+              <span><strong>{t("loginUser")}</strong><small>{t("loginUserDetail")}</small></span>
+            </button>
+          </> : null}
+          {auth.user ? <>
+            {isAdmin ? <button onClick={() => { onShowAdmin?.(); onClose(); }} type="button">
+              <UsersRound aria-hidden="true" size={17} />
+              <span><strong>{t("manageUsers")}</strong><small>{t("manageUsersDetail")}</small></span>
+            </button> : null}
+            <button onClick={() => { void auth.logout().finally(() => window.location.assign("/")); }} type="button">
+              <LogOut aria-hidden="true" size={17} />
+              <span><strong>{t("logout")}</strong><small>{auth.user.username}</small></span>
+            </button>
+          </> : null}
           <button onClick={() => { onShowHelp(); onClose(); }} type="button">
             <CircleHelp aria-hidden="true" size={17} />
             <span><strong>{t("help")}</strong><small>{t("welcomeHelpDetail")}</small></span>

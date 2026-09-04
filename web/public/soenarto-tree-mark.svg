@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">Soenarto Tree</title>
+  <desc id="desc">A connected family tree symbol in a navy square.</desc>
+  <defs>
+    <linearGradient id="background" x1="20" y1="12" x2="172" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123d5a" />
+      <stop offset="1" stop-color="#071d32" />
+    </linearGradient>
+    <linearGradient id="tree" x1="46" y1="33" x2="146" y2="157" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d8f5ff" />
+      <stop offset="1" stop-color="#9cdef2" />
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="182" height="182" rx="43" fill="url(#background)" />
+  <rect x="6" y="6" width="180" height="180" rx="42" fill="none" stroke="#355a66" stroke-width="2" />
+  <g fill="none" stroke="url(#tree)" stroke-linecap="round" stroke-linejoin="round" stroke-width="9">
+    <path d="M96 153V104M96 104H54V72M96 104h42V72M96 104V47" />
+  </g>
+  <g fill="#0b2942" stroke="url(#tree)" stroke-width="7">
+    <circle cx="96" cy="34" r="15" />
+    <circle cx="54" cy="59" r="15" />
+    <circle cx="138" cy="59" r="15" />
+    <circle cx="96" cy="104" r="13" />
+  </g>
+  <path d="M64 154h64" fill="none" stroke="#9cdef2" stroke-linecap="round" stroke-width="7" />
+</svg>

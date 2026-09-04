@@ -60,9 +60,9 @@ describe("ReportBugSheet", () => {
 
     expect(sheet).not.toBeNull();
     expect(whatsappUrl.hostname).toBe("wa.me");
-    expect(whatsappUrl.pathname).toBe("/6285188338123");
+    expect(whatsappUrl.pathname).toBe("/6281216195308");
     expect(telegramUrl.hostname).toBe("t.me");
-    expect(telegramUrl.pathname).toBe("/robihamanto");
+    expect(telegramUrl.pathname).toBe("/lwsyrs");
     expect(telegramMessage).toBe(whatsappMessage);
     expect(whatsappMessage).toContain("Device Model: Apple iPhone (390x844 CSS px)");
     expect(whatsappMessage).toContain(`App Version: ${__APP_VERSION__}`);

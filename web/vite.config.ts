@@ -12,7 +12,6 @@ const buildEnvironment = (globalThis as {
 const useExcalidrawFallback = buildEnvironment?.HERITG_CANVAS_RENDERER === "excalidraw" ||
   buildEnvironment?.VITE_HERITG_CANVAS_RENDERER === "excalidraw";
 const debugContextEnabled = buildEnvironment?.HERITG_DEBUG_CONTEXT === "1";
-const familyBillingEnabled = buildEnvironment?.HERITG_FAMILY_BILLING_ENABLED === "true";
 const buildTimestamp = new Date().toISOString().replace(/\D/g, "").slice(0, 12);
 const buildCommit = buildEnvironment?.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
 const buildVersion = buildEnvironment?.HERITG_BUILD_VERSION ?? [buildCommit, buildTimestamp].filter(Boolean).join("-");
@@ -83,14 +82,16 @@ const deploymentBrandPlugin = (): Plugin => ({
   name: "heritg-deployment-brand",
   transformIndexHtml(html) {
     if (!isStaging) return html;
-    return html
-      .replace("<title>Heritg</title>", "<title>Heritg Staging | Test Data Only</title>")
-      .replace('<meta name="theme-color" content="#f7f3ec" />', '<meta name="theme-color" content="#4c1d95" />');
+    return html.replace("<title>Soenarto Tree</title>", "<title>Soenarto Tree Staging | Test Data Only</title>");
   }
 });
 
 export default defineConfig({
   base: "/",
+  test: {
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"]
+  },
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
     __BUILD_VERSION__: JSON.stringify(buildVersion),
@@ -99,8 +100,7 @@ export default defineConfig({
     __DEBUG_CONTEXT_ENABLED__: JSON.stringify(debugContextEnabled),
     __DEPLOYMENT_ENV__: JSON.stringify(deploymentEnvironment),
     __GOOGLE_CLIENT_ID__: JSON.stringify(buildEnvironment?.HERITG_GOOGLE_CLIENT_ID ?? ""),
-    __TURNSTILE_SITE_KEY__: JSON.stringify(buildEnvironment?.HERITG_TURNSTILE_SITE_KEY ?? ""),
-    __FAMILY_BILLING_ENABLED__: JSON.stringify(familyBillingEnabled)
+    __TURNSTILE_SITE_KEY__: JSON.stringify(buildEnvironment?.HERITG_TURNSTILE_SITE_KEY ?? "")
   },
   plugins: [
     react(),
@@ -108,21 +108,21 @@ export default defineConfig({
     activeFamilyDebugPlugin(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "apple-touch-icon.png"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png", "pwa-192.png", "pwa-512.png", "soenarto-tree-mark.svg", "soenarto-tree-preview.png"],
       manifest: {
-        name: isStaging ? "Heritg Staging - Test Data Only" : "Heritg Family Tree",
-        short_name: isStaging ? "Heritg Staging" : "Heritg",
+        name: isStaging ? "Soenarto Tree Staging - Test Data Only" : "Soenarto Tree Family Tree",
+        short_name: isStaging ? "Soenarto Tree Staging" : "Soenarto Tree",
         description: isStaging
-          ? "Temporary Heritg staging environment for synthetic test data only."
+          ? "Temporary Soenarto Tree staging environment for synthetic test data only."
           : "Private, offline family trees stored on your device.",
-        theme_color: isStaging ? "#4c1d95" : "#f7f3ec",
-        background_color: isStaging ? "#f3e8ff" : "#f5f5f3",
+        theme_color: "#0b2942",
+        background_color: "#071d32",
         display: "standalone",
         start_url: "/",
         scope: "/",
         icons: [
-          { src: "/pwa-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/pwa-512.png", sizes: "512x512", type: "image/png" }
+          { src: "/pwa-192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+          { src: "/pwa-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
         ]
       },
       workbox: {
@@ -156,7 +156,4 @@ export default defineConfig({
   optimizeDeps: {
     include: useExcalidrawFallback ? ["@excalidraw/excalidraw"] : []
   },
-  test: {
-    environment: "jsdom"
-  }
 });

@@ -50,6 +50,7 @@ export interface CreateShareOptions {
   expiryDays?: number;
   familyRetention?: FamilyShareRetention;
   csrfToken?: string;
+  requireAuthentication?: boolean;
   fetchImpl?: Fetch;
   origin?: string;
   onProgress?: (phase: SharePhase) => void;
@@ -266,6 +267,10 @@ export async function createEncryptedShare(
   if (familyRetention && !options.csrfToken) {
     throw new Error("Sign in again before creating a Family link.");
   }
+  if (options.requireAuthentication && !options.csrfToken) {
+    throw new Error("Sign in again before creating a share link.");
+  }
+  const authenticated = Boolean(options.csrfToken);
   options.onProgress?.("exporting");
   const prepared = prepareEncryptedShareData(
     data,
@@ -290,7 +295,7 @@ export async function createEncryptedShare(
     envelopeVersion: SHARE_ENVELOPE_VERSION,
     ciphertextBytes,
     ...(familyRetention ? { retention: familyRetention } : { expiryDays })
-  }, fetchImpl, options.signal, true, Boolean(familyRetention), familyRetention
+  }, fetchImpl, options.signal, true, authenticated, authenticated
     ? { "x-csrf-token": options.csrfToken! }
     : {}));
 
@@ -317,7 +322,7 @@ export async function createEncryptedShare(
       throw new Error("The encrypted upload was interrupted. Please create a new link.");
     }
     if (!upload.ok) throw new Error("The encrypted upload was rejected. Please create a new link.");
-    const objectGeneration = upload.headers.get("x-goog-generation");
+    const objectGeneration = upload.headers.get("x-soenarto-generation") ?? upload.headers.get("x-goog-generation");
     if (!objectGeneration || !GENERATION_PATTERN.test(objectGeneration)) {
       throw new Error("The upload could not be verified. Please create a new link.");
     }
@@ -327,7 +332,9 @@ export async function createEncryptedShare(
       shareId: allocation.shareId,
       deletionToken: allocation.deletionToken,
       objectGeneration
-    }, fetchImpl, options.signal, false);
+    }, fetchImpl, options.signal, false, authenticated, authenticated
+      ? { "x-csrf-token": options.csrfToken! }
+      : {});
 
     const origin = options.origin ?? window.location.origin;
     return {
@@ -337,7 +344,7 @@ export async function createEncryptedShare(
       expiresAt: allocation.shareExpiresAt
     };
   } catch (error) {
-    await revokeEncryptedShare(allocation.shareId, allocation.deletionToken, fetchImpl).catch(() => undefined);
+    await revokeEncryptedShare(allocation.shareId, allocation.deletionToken, fetchImpl, options.signal, options.csrfToken).catch(() => undefined);
     throw error;
   }
 }
@@ -421,12 +428,16 @@ export async function revokeEncryptedShare(
   shareId: string,
   deletionToken: string,
   fetchImpl: Fetch = fetch,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  csrfToken?: string
 ) {
   if (!SHARE_ID_PATTERN.test(shareId) || !TOKEN_PATTERN.test(deletionToken)) {
     throw new Error("This share cannot be revoked from this browser session.");
   }
-  await apiPost("/api/v1/share-revocations", { shareId, deletionToken }, fetchImpl, signal);
+  const authenticated = Boolean(csrfToken);
+  await apiPost("/api/v1/share-revocations", { shareId, deletionToken }, fetchImpl, signal, true, authenticated, authenticated
+    ? { "x-csrf-token": csrfToken! }
+    : {});
 }
 
 export const encryptedShareTestHelpers = { encryptArchive };

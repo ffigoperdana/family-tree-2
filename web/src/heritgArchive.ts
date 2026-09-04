@@ -71,7 +71,7 @@ export const sharedViewFor = (data: AppData): SharedViewPolicy | undefined =>
 
 export class HeritgArchivePasswordError extends Error {
   constructor() {
-    super("The password is incorrect or the .heritg archive was modified.");
+    super("The password is incorrect or the encrypted family archive was modified.");
     this.name = "HeritgArchivePasswordError";
   }
 }

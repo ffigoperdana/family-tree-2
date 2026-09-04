@@ -35,7 +35,8 @@ import { deriveKinshipLabels } from "./kinship";
 import { createTreeLayout, LAYOUT_METRICS } from "./layout";
 import {
   projectConnectionPlanToElements,
-  projectLayoutToScene
+  projectLayoutToScene,
+  sceneColorsForTheme
 } from "./scene";
 import type {
   AppData,
@@ -47,6 +48,7 @@ import type {
   SceneLifeSummaryOptions,
   ViewportState
 } from "./types";
+import { useUiTheme } from "./uiTheme";
 
 export interface TreeCanvasHandle {
   fitAll: () => void;
@@ -331,6 +333,7 @@ export const ExcalidrawTreeCanvas = forwardRef<TreeCanvasHandle, TreeCanvasProps
   lifeSummaryOptions
 }, ref) {
   const [api, setApi] = useState<ExcalidrawImperativeAPI>();
+  const theme = useUiTheme();
   const canvasHost = useRef<HTMLDivElement>(null);
   const viewportTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pendingViewport = useRef<ViewportState | undefined>(undefined);
@@ -394,9 +397,10 @@ export const ExcalidrawTreeCanvas = forwardRef<TreeCanvasHandle, TreeCanvasProps
     ),
     [language, people.length, readOnly, routingLayout]
   );
+  const sceneColors = sceneColorsForTheme(theme);
   const connectionElements = useMemo(
-    () => projectConnectionPlanToElements(connectionPlan),
-    [connectionPlan]
+    () => projectConnectionPlanToElements(connectionPlan, sceneColors),
+    [connectionPlan, sceneColors]
   );
   const scene = useMemo(
     () => projectLayoutToScene(
@@ -406,9 +410,10 @@ export const ExcalidrawTreeCanvas = forwardRef<TreeCanvasHandle, TreeCanvasProps
       connectionPlan,
       resolveAvatar,
       connectionElements,
-      lifeSummaryOptions
+      lifeSummaryOptions,
+      theme
     ),
-    [connectionElements, connectionPlan, language, layout, lifeSummaryOptions, resolveAvatar, selectedPersonId]
+    [connectionElements, connectionPlan, language, layout, lifeSummaryOptions, resolveAvatar, selectedPersonId, theme]
   );
   useEffect(() => {
     viewportCallback.current = onViewportChange;
@@ -711,7 +716,7 @@ export const ExcalidrawTreeCanvas = forwardRef<TreeCanvasHandle, TreeCanvasProps
         }}
         onPointerUp={handlePointerUp}
         onScrollChange={persistViewport}
-        theme="light"
+        theme={theme}
         viewModeEnabled={touchNavigation}
         UIOptions={{
           canvasActions: {

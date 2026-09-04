@@ -126,7 +126,7 @@ export function SharedTreeApp() {
   if (error) {
     return (
       <main className="shared-state">
-        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/pwa-192.png" width={192} />
+        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/soenarto-tree-mark.svg" width={192} />
         <h1>{t("sharedErrorTitle")}</h1>
         <p role="alert">{error}</p>
         <div className="shared-state-actions">
@@ -140,7 +140,7 @@ export function SharedTreeApp() {
   if (passwordRequired) {
     return (
       <main className="shared-state">
-        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/pwa-192.png" width="192" />
+        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/soenarto-tree-mark.svg" width="192" />
         <h1>{t("sharedPasswordTitle")}</h1>
         <p>{t("sharedPasswordDetail")}</p>
         <form aria-busy={isUnlocking} className="shared-password-form" onSubmit={unlockShare}>
@@ -173,8 +173,8 @@ export function SharedTreeApp() {
   if (!loaded || !tree) {
     return (
       <main className="shared-state" aria-live="polite">
-        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/pwa-192.png" width={192} />
-        <h1>Heritg</h1>
+        <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/soenarto-tree-mark.svg" width={192} />
+        <h1>Soenarto Tree</h1>
         <p>{t("sharedLoading")}</p>
       </main>
     );
@@ -236,7 +236,7 @@ export function SharedTreeApp() {
           <strong>{t("sharedReadOnly")}</strong>
           <span>{t("sharedReadOnlyDetail")}</span>
           <span>{t("sharedCopyDetail")}</span>
-          <small>{expiry ? t("sharedExpires", { date: expiry }) : t("shareWhileFamilyActive")}</small>
+          <small>{expiry ? t("sharedExpires", { date: expiry }) : t("shareNoExpiry")}</small>
           {saveError ? <small className="danger-text" role="alert">{saveError}</small> : null}
         </aside>
 

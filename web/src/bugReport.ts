@@ -124,7 +124,7 @@ export function createBugReportMessage(
   const appLanguage = context.appLanguage === "id" ? "Bahasa Indonesia" : "English";
   const generatedAt = context.generatedAt ?? new Date().toISOString();
   return [
-    "Hello, I found a bug in Heritg Web.",
+    "Hello, I found a bug in Soenarto Tree Web.",
     "",
     "What happened:",
     "[Please describe the problem]",
@@ -140,7 +140,7 @@ export function createBugReportMessage(
     "------------------------------",
     "Automatic Device Information Collection for Enhanced Support:",
     "",
-    "App: Heritg Web",
+    "App: Soenarto Tree Web",
     `Device Model: ${detectDeviceModel(environment)}`,
     `Operating System: ${detectOperatingSystem(environment)}`,
     `Browser: ${detectBrowser(environment.userAgent)}`,
@@ -166,6 +166,6 @@ export function createBugReportMessage(
 export const bugReportUrl = (channel: BugReportChannel, message: string) => {
   const text = encodeURIComponent(message);
   return channel === "whatsapp"
-    ? `https://wa.me/6285188338123?text=${text}`
-    : `https://t.me/robihamanto?text=${text}`;
+    ? `https://wa.me/6281216195308?text=${text}`
+    : `https://t.me/lwsyrs?text=${text}`;
 };

@@ -1,23 +1,19 @@
-import { Globe2, Languages, ShieldCheck } from "lucide-react";
+import { Globe2, Languages, Moon, ShieldCheck, Sun } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { AccountSettings } from "./AccountSettings";
 import { AppVersion } from "./AppVersion";
 import type { MessageKey, Translator } from "./i18n";
 import { relationshipLanguageForData } from "./kinship";
 import { passwordRequirements } from "./passwordPolicy";
-import type { ProContextValue } from "./proTypes";
-import { unavailableProContext } from "./proTypes";
-import { ProSettings } from "./ProSettings";
 import type { AppActions } from "./store";
 import type { AppData, RelationshipLanguage } from "./types";
 import { ButtonLoader, SidePanel } from "./ui";
+import { setUiTheme, useUiTheme } from "./uiTheme";
 
 interface SettingsDialogProps {
   data: AppData;
   actions: AppActions;
   t: Translator;
   onClose: () => void;
-  pro?: ProContextValue;
 }
 
 const relationshipLanguageOptions: ReadonlyArray<readonly [RelationshipLanguage, MessageKey]> = [
@@ -47,13 +43,13 @@ export function SettingsDialog({
   data,
   actions,
   t,
-  onClose,
-  pro = unavailableProContext
+  onClose
 }: SettingsDialogProps) {
   const [pendingLanguage, setPendingLanguage] = useState<AppData["language"]>();
   const [isPending, startTransition] = useTransition();
   const changingLanguage = useRef(false);
   const relationshipLanguage = relationshipLanguageForData(data);
+  const theme = useUiTheme();
 
   useEffect(() => {
     if (!isPending) changingLanguage.current = false;
@@ -69,9 +65,36 @@ export function SettingsDialog({
   return (
     <SidePanel closeLabel={t("close")} onClose={onClose} title={t("settings")}>
 
-      <ProSettings language={data.language} onOpenPaywall={pro.openPaywall} pro={pro} t={t} />
-
-      <AccountSettings language={data.language} t={t} />
+      <div className="settings-group">
+        <h3>{t("appearance")}</h3>
+        <section className="settings-card">
+          <div className="settings-card-header">
+            {theme === "dark" ? <Moon aria-hidden="true" size={23} /> : <Sun aria-hidden="true" size={23} />}
+            <div>
+              <strong>{t("appearance")}</strong>
+              <p className="settings-detail">{t("appearanceDetail")}</p>
+            </div>
+          </div>
+          <div className="theme-options">
+            <button
+              aria-pressed={theme === "dark"}
+              className={theme === "dark" ? "selected" : ""}
+              onClick={() => setUiTheme("dark")}
+              type="button"
+            >
+              <Moon aria-hidden="true" size={16} /> {t("darkMode")}
+            </button>
+            <button
+              aria-pressed={theme === "light"}
+              className={theme === "light" ? "selected" : ""}
+              onClick={() => setUiTheme("light")}
+              type="button"
+            >
+              <Sun aria-hidden="true" size={16} /> {t("lightMode")}
+            </button>
+          </div>
+        </section>
+      </div>
 
       <div className="settings-group">
         <h3>{t("language")}</h3>

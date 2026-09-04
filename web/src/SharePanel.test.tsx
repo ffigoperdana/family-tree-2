@@ -4,8 +4,6 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createTranslator } from "./i18n";
-import { ProProvider } from "./ProProvider";
-import { unavailableProContext } from "./proTypes";
 import { SharePanel } from "./SharePanel";
 import { loadManagedShares, reserveManagedShareSlot } from "./db";
 import type { AppData, FamilyTree } from "./types";
@@ -69,35 +67,28 @@ describe("SharePanel methods", () => {
     container.remove();
   });
 
-  it("presents separate HERITG and GEDCOM workflows with clear use cases", () => {
+  it("presents separate family backup and image export workflows with clear use cases", () => {
     const choices = [...container.querySelectorAll<HTMLButtonElement>(".share-method-choice")];
     expect(choices.map((choice) => choice.textContent)).toEqual([
       expect.stringContaining("Web link"),
-      expect.stringContaining("HERITG backup"),
-      expect.stringContaining("GEDCOM export"),
+      expect.stringContaining("Soenarto Tree backup"),
       expect.stringContaining("Images")
     ]);
     expect(choices[0].getAttribute("aria-pressed")).toBe("true");
     expect(container.textContent).toContain("Create a new link");
     const details = () => container.querySelector(".share-method-content")?.textContent;
-    expect(details()).not.toContain("GEDCOM export (.ged)");
+    expect(details()).not.toContain("GEDCOM");
 
     act(() => choices[1].click());
     expect(details()).toContain("Recommended");
-    expect(details()).toContain("HERITG backup (.heritg)");
+    expect(details()).toContain("Soenarto Tree backup (.soenarto)");
     expect(details()).toContain("photos, notes, places, dates");
-    expect(details()).not.toContain("GEDCOM export (.ged)");
+    expect(details()).not.toContain("GEDCOM");
 
     act(() => choices[2].click());
-    expect(details()).toContain("For other apps");
-    expect(details()).toContain("GEDCOM export (.ged)");
-    expect(details()).toContain("widely supported");
-    expect(details()).not.toContain("HERITG backup (.heritg)");
-
-    act(() => choices[3].click());
     expect(details()).toContain("Download HD PNG");
     expect(details()).toContain("Download SVG");
-    expect(details()).not.toContain("GEDCOM export (.ged)");
+    expect(details()).not.toContain("GEDCOM");
   });
 
   it("limits the Free plan to one active link across every canvas on this device", async () => {
@@ -135,39 +126,6 @@ describe("SharePanel methods", () => {
     const createButton = [...container.querySelectorAll<HTMLButtonElement>("button")]
       .find((button) => button.textContent?.includes("Create encrypted link"));
     expect(createButton?.disabled).toBe(true);
-  });
-
-  it("enables authenticated long-lived links for active Family+ access", async () => {
-    await act(async () => root.unmount());
-    root = createRoot(container);
-    await act(async () => {
-      root.render(
-        <ProProvider value={{
-          ...unavailableProContext,
-          configured: true,
-          subscription: { status: "active", expiresAt: "2028-08-23T00:00:00Z" }
-        }}>
-          <SharePanel
-            data={data}
-            exportPng={vi.fn().mockResolvedValue(undefined)}
-            exportSvg={vi.fn().mockResolvedValue(undefined)}
-            onClose={vi.fn()}
-            onCopied={vi.fn()}
-            onError={vi.fn()}
-            onExported={vi.fn()}
-            peopleCount={1}
-            t={createTranslator("en")}
-            tree={tree}
-          />
-        </ProProvider>
-      );
-      await Promise.resolve();
-    });
-
-    const familyOptions = container.querySelector<HTMLOptGroupElement>('optgroup[label="Heritg Family+"]');
-    expect(familyOptions?.disabled).toBe(false);
-    expect(familyOptions?.textContent).toContain("1 year · Family+");
-    expect(container.textContent).not.toContain("Unlock longer links with Family+");
   });
 
   it("rejects creation when another canvas reserves the device share slot", async () => {

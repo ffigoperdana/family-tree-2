@@ -170,7 +170,7 @@ export function buildChartSvg(
     <rect width="100%" height="100%" fill="#fffdf8"/>
     <g font-family="Assistant, Segoe UI, Arial, sans-serif">${familyLines}${relationshipLines}${junctions}${crossings}${relationshipLabels}${nodes}</g>
     <line x1="${PADDING}" x2="${width - PADDING}" y1="${height - FOOTER_HEIGHT}" y2="${height - FOOTER_HEIGHT}" stroke="#ede5d8"/>
-    <text x="${width - PADDING}" y="${height - 21}" text-anchor="end" font-family="Assistant, Segoe UI, Arial, sans-serif" font-size="11" fill="#796f63">Heritg · ${escapeXml(exported)}</text>
+    <text x="${width - PADDING}" y="${height - 21}" text-anchor="end" font-family="Assistant, Segoe UI, Arial, sans-serif" font-size="11" fill="#796f63">Soenarto Tree · ${escapeXml(exported)}</text>
   </svg>`;
   return { svg, width, height };
 }

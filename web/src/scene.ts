@@ -37,6 +37,7 @@ import type {
   SceneLifeSummaryOptions,
   TreeLayout
 } from "./types";
+import type { UiTheme } from "./uiTheme";
 export const HERITG_SCENE_COLORS = {
   canvas: "#f5f5f3",
   text: "#302b25",
@@ -46,6 +47,26 @@ export const HERITG_SCENE_COLORS = {
   partner: CONNECTOR_STYLE.partnerColor,
   sibling: CONNECTOR_STYLE.siblingColor
 } as const;
+const DARK_SCENE_COLORS = {
+  canvas: "#071d32",
+  text: "#e5e2e1",
+  subtleText: "#bfc8cb",
+  line: "#355a66",
+  brand: "#9cdef2",
+  partner: "#ed9da7",
+  sibling: "#9bcc9f"
+} as const;
+export type SceneColors = {
+  canvas: string;
+  text: string;
+  subtleText: string;
+  line: string;
+  brand: string;
+  partner: string;
+  sibling: string;
+};
+export const sceneColorsForTheme = (theme: UiTheme): SceneColors =>
+  theme === "dark" ? DARK_SCENE_COLORS : HERITG_SCENE_COLORS;
 export type SceneBounds = readonly [
   minX: number,
   minY: number,
@@ -98,9 +119,12 @@ const relationshipData = (relationship: FamilyRelationship) => ({
   fromPersonId: relationship.fromPersonId,
   toPersonId: relationship.toPersonId
 });
-const relationshipColor = (kind: FamilyRelationship["kind"]) =>
-  kind === "parent" ? HERITG_SCENE_COLORS.brand :
-    kind === "partner" ? HERITG_SCENE_COLORS.partner : HERITG_SCENE_COLORS.sibling;
+const relationshipColor = (
+  kind: FamilyRelationship["kind"],
+  colors: SceneColors = HERITG_SCENE_COLORS
+) =>
+  kind === "parent" ? colors.brand :
+    kind === "partner" ? colors.partner : colors.sibling;
 const personData = (person: PositionedPerson) => ({
   heritgType: "person",
   entityType: "person",
@@ -178,7 +202,8 @@ const centeredTextX = (text: string, fontSize: number, centerX: number) =>
   centerX - text.length * fontSize * 0.26;
 const plannedLabelSkeletons = (
   relationship: FamilyRelationship,
-  label: PlannedRelationshipLabel
+  label: PlannedRelationshipLabel,
+  colors: SceneColors = HERITG_SCENE_COLORS
 ): ExcalidrawElementSkeleton[] => {
   const key = encodedId(relationship.id);
   const link = `#heritg-relationship=${key}`;
@@ -189,7 +214,7 @@ const plannedLabelSkeletons = (
       type: "rectangle",
       ...label.rect,
       strokeColor: "transparent",
-      backgroundColor: HERITG_SCENE_COLORS.canvas,
+      backgroundColor: colors.canvas,
       fillStyle: "solid",
       strokeWidth: 1,
       strokeStyle: "solid",
@@ -210,7 +235,7 @@ const plannedLabelSkeletons = (
       label.rect.width - 14,
       16,
       12,
-      HERITG_SCENE_COLORS.subtleText,
+      colors.subtleText,
       link,
       data,
       groupIds
@@ -223,7 +248,8 @@ const personSkeletons = (
   selectedPersonId: string | undefined,
   language: AppData["language"],
   resolveAvatar: AvatarImageResolver,
-  lifeSummaryOptions?: SceneLifeSummaryOptions
+  lifeSummaryOptions?: SceneLifeSummaryOptions,
+  colors: SceneColors = HERITG_SCENE_COLORS
 ): ExcalidrawElementSkeleton[] => {
   const key = encodedId(person.id);
   const groupIds = [`heritg:person:${key}`];
@@ -246,7 +272,7 @@ const personSkeletons = (
       y: avatarY,
       width: avatarSize,
       height: avatarSize,
-      strokeColor: selected ? HERITG_SCENE_COLORS.brand : appearance.stroke,
+      strokeColor: selected ? colors.brand : appearance.stroke,
       backgroundColor: appearance.fill,
       fillStyle: "solid",
       strokeWidth: selected ? 2 : 1,
@@ -309,7 +335,7 @@ const personSkeletons = (
         24,
         28,
         24,
-        HERITG_SCENE_COLORS.text,
+        colors.text,
         link,
         data,
         groupIds
@@ -330,7 +356,7 @@ const personSkeletons = (
         width: BIRTH_ORDER_BADGE.radius * 2,
         height: BIRTH_ORDER_BADGE.radius * 2,
         strokeColor: appearance.stroke,
-        backgroundColor: HERITG_SCENE_COLORS.canvas,
+        backgroundColor: colors.canvas,
         fillStyle: "solid",
         strokeWidth: 2,
         strokeStyle: "solid",
@@ -345,7 +371,7 @@ const personSkeletons = (
         10,
         BIRTH_ORDER_BADGE.radius * 2,
         BIRTH_ORDER_BADGE.radius * 2,
-        HERITG_SCENE_COLORS.text,
+         colors.text,
         link,
         data,
         groupIds
@@ -362,7 +388,7 @@ const personSkeletons = (
       LAYOUT_METRICS.labelWidth,
       LAYOUT_METRICS.nameHeight + name.extraHeight,
       PERSON_NAME_FONT_SIZE,
-      HERITG_SCENE_COLORS.text,
+       colors.text,
       link,
       data,
       groupIds
@@ -378,7 +404,7 @@ const personSkeletons = (
       LAYOUT_METRICS.labelWidth,
       LAYOUT_METRICS.roleHeight,
       13,
-      selected ? HERITG_SCENE_COLORS.brand : HERITG_SCENE_COLORS.subtleText,
+       selected ? colors.brand : colors.subtleText,
       link,
       data,
       groupIds
@@ -400,7 +426,7 @@ const personSkeletons = (
         LAYOUT_METRICS.labelWidth,
         LAYOUT_METRICS.lifeHeight,
         11,
-        HERITG_SCENE_COLORS.subtleText,
+        colors.subtleText,
         link,
         data,
         groupIds
@@ -417,7 +443,7 @@ const personSkeletons = (
         LAYOUT_METRICS.labelWidth,
         LAYOUT_METRICS.lifeHeight,
         11,
-        HERITG_SCENE_COLORS.subtleText,
+        colors.subtleText,
         link,
         data,
         groupIds
@@ -428,7 +454,8 @@ const personSkeletons = (
 };
 
 export const projectConnectionPlanToElements = (
-  plan: ConnectionPlan
+  plan: ConnectionPlan,
+  colors: SceneColors = HERITG_SCENE_COLORS
 ): OrderedExcalidrawElement[] => {
   const skeletons: ExcalidrawElementSkeleton[] = [];
   for (const family of plan.families) {
@@ -444,7 +471,7 @@ export const projectConnectionPlanToElements = (
     connectorPaths(family.segments).forEach((path, index) => skeletons.push(connectorSkeleton(
       path.points,
       `heritg:family:${familyKey}:path:${index}`,
-      HERITG_SCENE_COLORS.brand,
+      colors.brand,
       CONNECTOR_STYLE.width,
       "solid",
       `#heritg-family=${familyKey}`,
@@ -457,8 +484,8 @@ export const projectConnectionPlanToElements = (
       y: junction.y - CONNECTOR_STYLE.junctionRadius,
       width: CONNECTOR_STYLE.junctionRadius * 2,
       height: CONNECTOR_STYLE.junctionRadius * 2,
-      strokeColor: HERITG_SCENE_COLORS.brand,
-      backgroundColor: HERITG_SCENE_COLORS.brand,
+      strokeColor: colors.brand,
+      backgroundColor: colors.brand,
       fillStyle: "solid",
       strokeWidth: 1,
       strokeStyle: "solid",
@@ -474,7 +501,7 @@ export const projectConnectionPlanToElements = (
   for (const route of plan.nonParentRoutes) {
     const relationship = route.relationship;
     const key = encodedId(relationship.id);
-    const color = relationshipColor(relationship.kind);
+     const color = relationshipColor(relationship.kind, colors);
     connectorPaths(route.segments).forEach((path, index) => skeletons.push(connectorSkeleton(
       path.points,
       `heritg:relationship:${key}:path:${index}`,
@@ -495,8 +522,8 @@ export const projectConnectionPlanToElements = (
       y: point.y - radius,
       width: radius * 2,
       height: radius * 2,
-      strokeColor: HERITG_SCENE_COLORS.canvas,
-      backgroundColor: HERITG_SCENE_COLORS.canvas,
+      strokeColor: colors.canvas,
+      backgroundColor: colors.canvas,
       fillStyle: "solid",
       strokeWidth: 1,
       strokeStyle: "solid",
@@ -506,7 +533,7 @@ export const projectConnectionPlanToElements = (
     skeletons.push(connectorSkeleton(
       [{ x: point.x - radius - 2, y: point.y }, { x: point.x + radius + 2, y: point.y }],
       `heritg:crossing:${encodedId(key)}:rail`,
-      relationshipColor(point.horizontalKind),
+       relationshipColor(point.horizontalKind, colors),
       CONNECTOR_STYLE.width,
       point.horizontalKind === "sibling" ? "dashed" : "solid",
       "",
@@ -519,7 +546,7 @@ export const projectConnectionPlanToElements = (
         { x: point.x, y: point.y + radius }
       ],
       `heritg:crossing:${encodedId(key)}:bridge`,
-      relationshipColor(point.kind),
+       relationshipColor(point.kind, colors),
       CONNECTOR_STYLE.width,
       point.kind === "sibling" ? "dashed" : "solid",
       "",
@@ -528,7 +555,7 @@ export const projectConnectionPlanToElements = (
   });
   for (const route of plan.nonParentRoutes) {
     if (route.label) {
-      skeletons.push(...plannedLabelSkeletons(route.relationship, route.label));
+      skeletons.push(...plannedLabelSkeletons(route.relationship, route.label, colors));
     }
   }
   return convertToExcalidrawElements(skeletons, { regenerateIds: false });
@@ -541,7 +568,8 @@ export function projectLayoutToScene(
   suppliedPlan?: ConnectionPlan,
   resolveAvatar: AvatarImageResolver = circularAvatarData,
   suppliedConnectionElements?: readonly OrderedExcalidrawElement[],
-  lifeSummaryOptions?: SceneLifeSummaryOptions
+  lifeSummaryOptions?: SceneLifeSummaryOptions,
+  theme: UiTheme = "light"
 ): HeritgExcalidrawScene {
   const people = [...layout.people].sort(
     (left, right) =>
@@ -550,15 +578,16 @@ export function projectLayoutToScene(
       left.x - right.x ||
       compareText(left.id, right.id)
   );
+  const colors = sceneColorsForTheme(theme);
   const plan = suppliedPlan ?? createConnectionPlan(layout, language);
   const connectionElements = suppliedConnectionElements ??
-    projectConnectionPlanToElements(plan);
+    projectConnectionPlanToElements(plan, colors);
 
   const files: BinaryFiles = {};
   const personSkeletonValues: ExcalidrawElementSkeleton[] = [];
   for (const person of people) {
     personSkeletonValues.push(...personSkeletons(
-      person, files, selectedPersonId, language, resolveAvatar, lifeSummaryOptions
+      person, files, selectedPersonId, language, resolveAvatar, lifeSummaryOptions, colors
     ));
   }
   const personElements = convertToExcalidrawElements(
@@ -577,7 +606,7 @@ export function projectLayoutToScene(
   return {
     elements,
     files,
-    appState: { viewBackgroundColor: HERITG_SCENE_COLORS.canvas },
+    appState: { viewBackgroundColor: colors.canvas },
     contentBounds,
     bounds
   };

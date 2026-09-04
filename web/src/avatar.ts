@@ -11,6 +11,8 @@ export type AvatarImageResolver = (
   size: number
 ) => AvatarImageData | undefined;
 
+const MAX_AVATAR_DATA_URL_LENGTH = 14 * 1024 * 1024;
+
 const stableNumber = (value: string) => {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -20,9 +22,11 @@ const stableNumber = (value: string) => {
   return (hash >>> 1) || 1;
 };
 
-export const isValidAvatarImage = (value: string | undefined) => Boolean(value?.match(
-  /^data:(image\/(?:svg\+xml|png|jpe?g|gif|webp|bmp|x-icon|avif|jfif))(?:;[^,]*)?,/i
-));
+export const isValidAvatarImage = (value: string | undefined) => Boolean(
+  value && value.length <= MAX_AVATAR_DATA_URL_LENGTH && value.match(
+    /^data:(image\/(?:png|jpe?g|gif|webp|heic));base64,[A-Za-z0-9+/]+={0,2}$/iu
+  )
+);
 
 const escapeXml = (value: string) => value
   .replaceAll("&", "&amp;")

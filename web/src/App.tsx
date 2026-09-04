@@ -1,7 +1,6 @@
 import {
   CircleHelp,
-  Cloud,
-  CloudOff,
+  Download,
   Eye,
   EyeOff,
   FolderOpen,
@@ -11,7 +10,6 @@ import {
   Pencil,
   Share2,
   Settings2,
-  ShieldCheck,
   SlidersHorizontal,
   UserRoundPlus,
   UsersRound,
@@ -26,19 +24,17 @@ import {
 } from "react";
 
 import { availableGenerationLevels } from "./layout";
+import { useAuth } from "./auth";
+import { AdminUsersPanel } from "./AdminUsersPanel";
 import { createTranslator } from "./i18n";
 import { relationshipLanguageForData } from "./kinship";
-import { FamilyPlusMark, FamilyPlusWordmark } from "./FamilyPlusMark";
 import { PeopleDialog } from "./PeopleDialog";
 import { PersonEditor } from "./PersonEditor";
-import { PrivacyPanel } from "./PrivacyPanel";
-import { ProPaywallDialog } from "./ProPaywallDialog";
-import { usePro } from "./ProProvider";
+import { InstallAppPanel } from "./InstallAppPanel";
 import { RelativeDialog } from "./RelativeDialog";
 import { ReportBugSheet } from "./ReportBugSheet";
 import { SettingsDialog } from "./SettingsDialog";
 import { SharePanel } from "./SharePanel";
-import { SyncResolutionDialog } from "./SyncResolutionDialog";
 import { HelpPanel } from "./HelpPanel";
 import { TreeCanvas, type TreeCanvasHandle } from "./TreeCanvas";
 import { TreeSidebar } from "./TreeSidebar";
@@ -48,11 +44,11 @@ import { ErrorNotice, LoadingScreen, Modal } from "./ui";
 import { saveUiLanguage } from "./uiLanguage";
 
 const unlimited: GenerationLimits = { ancestors: null, descendants: null };
-type RightPanel = "people" | "settings" | "share" | "help" | "privacy" | "report";
+type RightPanel = "people" | "settings" | "share" | "help" | "install" | "admin" | "report";
 
 export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
   const store = useAppStore();
-  const pro = usePro();
+  const auth = useAuth();
   const { data, actions } = store;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rightPanel, setRightPanel] = useState<RightPanel | undefined>(initialPanel);
@@ -71,6 +67,12 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
   const activeTree = data?.trees.find((tree) => tree.id === data.selectedTreeId)
     ?? data?.trees[0];
   const activeTreeId = activeTree?.id;
+  const canEditActiveTree = Boolean(activeTree && (
+    !auth.enabled ||
+    (auth.user && (activeTree.kind === "canonical" ? auth.user.role === "admin" : activeTree.ownerId === auth.user.id))
+  ));
+  const canUseShare = Boolean(__SHARING_ENABLED__ && canEditActiveTree && (!auth.enabled || auth.user));
+  const canCreateTree = Boolean(!auth.enabled || auth.user);
   const allPeople = data?.people;
   const allRelationships = data?.relationships;
   const people = useMemo(
@@ -184,25 +186,19 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
     setGenerationOpen(false);
   };
 
-  const openFamilyPlus = () => {
-    setGenerationOpen(false);
-    setRightPanel(undefined);
-    pro.openPaywall();
-  };
-
   const emptyWelcome = !people.length ? (
     <section className="welcome-canvas" aria-labelledby="welcome-title">
       <div className="welcome-brand">
-        <img alt="" aria-hidden="true" className="brand-mark" height={192} src="/pwa-192.png" width={192} />
-        <strong>Heritg</strong>
+        <img alt="" aria-hidden="true" className="brand-mark" height={192} src="/soenarto-tree-mark.svg" width={192} />
+        <strong>Soenarto Tree</strong>
       </div>
       <h3 id="welcome-title">{t("startTitle")}</h3>
       <p>{t("startDetail")}</p>
       <div className="welcome-actions">
-        <button className="welcome-action" onClick={() => setEditingPerson("new")} type="button">
-          <UserRoundPlus aria-hidden="true" size={19} />
-          <span><strong>{t("addFirstPerson")}</strong><small>{t("welcomeAddDetail")}</small></span>
-        </button>
+        {canEditActiveTree ? <button className="welcome-action" onClick={() => setEditingPerson("new")} type="button">
+            <UserRoundPlus aria-hidden="true" size={19} />
+            <span><strong>{t("addFirstPerson")}</strong><small>{t("welcomeAddDetail")}</small></span>
+          </button> : null}
         <button className="welcome-action" onClick={() => setSidebarOpen(true)} type="button">
           <FolderOpen aria-hidden="true" size={19} />
           <span><strong>{t("welcomeOpenTree")}</strong><small>{t("welcomeOpenTreeDetail")}</small></span>
@@ -219,7 +215,6 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
   return (
     <div className="app-shell">
       <TreeSidebar
-        account={pro.account.status === "signedIn" ? pro.account.user : undefined}
         actions={actions}
         data={data}
         onClose={() => {
@@ -229,8 +224,8 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         onError={setOperationError}
         onImported={() => setToast(t("imported"))}
         onShowHelp={() => setRightPanel("help")}
-        onShowFamily={openFamilyPlus}
-        onShowPrivacy={() => setRightPanel("privacy")}
+        onShowInstall={() => setRightPanel("install")}
+        onShowAdmin={() => setRightPanel("admin")}
         onReportBug={() => setRightPanel("report")}
         open={sidebarOpen}
         t={t}
@@ -250,7 +245,6 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         </button> : null}
 
         {controlsVisible && !activeTree ? <div className="empty-workspace-tools">
-          <button aria-label={t("heritgFamily")} className="button secondary workspace-family-button" onClick={openFamilyPlus} type="button"><FamilyPlusMark size={20} /><FamilyPlusWordmark /></button>
           <button aria-label={t("settings")} className="icon-button" onClick={() => setRightPanel("settings")} type="button"><Settings2 aria-hidden="true" size={19} /></button>
         </div> : null}
 
@@ -273,13 +267,13 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
               key={`${activeTree.id}-${data.language}-${relationshipLanguage}`}
               language={data.language}
               relationshipLanguage={relationshipLanguage}
-              onAddRelative={addRelativeTo}
+              onAddRelative={canEditActiveTree ? addRelativeTo : () => undefined}
               onCanvasInteract={dismissCanvasPanels}
               onDeselectPerson={() => {
                 setGenerationOpen(false);
                 actions.selectPerson(undefined);
               }}
-              onEditPerson={editPerson}
+              onEditPerson={canEditActiveTree ? editPerson : () => undefined}
               onSelectPerson={(personId) => {
                 setGenerationOpen(false);
                 actions.selectPerson(personId);
@@ -289,7 +283,8 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
               ref={canvasRef}
               relationships={relationships}
               selectedPersonId={selectedPerson?.id}
-              actionsVisible={controlsVisible}
+              actionsVisible={controlsVisible && canEditActiveTree}
+              readOnly={auth.enabled && !canEditActiveTree}
               t={t}
               treeId={activeTree.id}
               treeTitle={activeTree.title}
@@ -298,34 +293,28 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
             <header className="workspace-header">
               <div className="workspace-title">
                 <div className="workspace-title-row">
-                  <button
+                  {canEditActiveTree && activeTree.kind !== "canonical" ? <button
                     aria-label={`${t("renameTree")}: ${activeTree.title}`}
                     className="workspace-title-name"
                     onClick={startRenamingTree}
                     type="button"
                   >
                     <h2>{activeTree.title}</h2>
-                  </button>
-                  <button
-                    aria-label={t("renameTree")}
-                    className="icon-button quiet workspace-title-edit"
-                    onClick={startRenamingTree}
-                    title={t("renameTree")}
-                    type="button"
-                  >
-                    <Pencil aria-hidden="true" size={15} />
-                  </button>
+                  </button> : <h2>{activeTree.title}</h2>}
+                  {canEditActiveTree && activeTree.kind !== "canonical" ? <button
+                      aria-label={t("renameTree")}
+                      className="icon-button quiet workspace-title-edit"
+                      onClick={startRenamingTree}
+                      title={t("renameTree")}
+                      type="button"
+                    >
+                      <Pencil aria-hidden="true" size={15} />
+                    </button> : null}
                 </div>
                 <p>{t("peopleCount", { count: people.length })} · {t("relationshipsCount", { count: relationships.length })}</p>
               </div>
               {controlsVisible ? <div className="workspace-tools">
-                {(pro.subscription.status === "active" || pro.subscription.status === "readOnly") && pro.sync.enabled ? <button
-                  aria-label={`${t("automaticSync")}: ${t(pro.sync.phase === "upToDate" ? "syncUpToDate" : pro.sync.phase === "offline" ? "syncOffline" : pro.sync.phase === "error" || pro.sync.phase === "conflict" ? "syncAttention" : "syncing")}`}
-                  className={`icon-button sync-workspace-button sync-${pro.sync.phase}`}
-                   onClick={() => { setGenerationOpen(false); setRightPanel("settings"); }} type="button"
-                 >{pro.sync.phase === "offline" || pro.sync.phase === "error" ? <CloudOff aria-hidden="true" size={19} /> : <Cloud aria-hidden="true" size={19} />}</button> : null}
-                 <button aria-label={t("heritgFamily")} className="button secondary workspace-family-button" onClick={openFamilyPlus} type="button"><FamilyPlusMark size={20} /><FamilyPlusWordmark /></button>
-                {__SHARING_ENABLED__ ? (
+                {canUseShare ? (
                   <button
                     aria-label={t("shareTree")}
                     className="button secondary workspace-share-button"
@@ -438,10 +427,10 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
               </div>
             ) : null}
 
-            {controlsVisible ? <div className="canvas-utilities" aria-label={t("helpPrivacyHint")} role="toolbar">
-              <button aria-label={`${t("privacyProtection")}: ${t("protected")}`} className="privacy-button" onClick={() => setRightPanel("privacy")} type="button">
-                <ShieldCheck aria-hidden="true" size={18} />
-                <span>{t("protected")}</span>
+            {controlsVisible ? <div className="canvas-utilities" aria-label={`${t("installAppTitle")} · ${t("help")}`} role="toolbar">
+              <button aria-label={t("installAppTitle")} className="privacy-button" onClick={() => setRightPanel("install")} type="button">
+                <Download aria-hidden="true" size={18} />
+                <span>{t("installAppTitle")}</span>
               </button>
               <button aria-label={t("help")} className="icon-button" onClick={() => setRightPanel("help")} type="button">
                 <CircleHelp aria-hidden="true" size={18} />
@@ -476,16 +465,16 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
           </div>
         ) : (
           <section className="empty-canvas no-tree-state">
-            <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/pwa-192.png" width={192} />
+            <img alt="" aria-hidden="true" className="brand-mark large" height={192} src="/soenarto-tree-mark.svg" width={192} />
             <h3>{t("newTree")}</h3>
             <p>{t("localOnlyDetail")}</p>
-            <button
-              className="button primary"
-              onClick={() => actions.createTree(data.language === "id" ? "Silsilah Keluarga Saya" : "My Family Tree")}
-              type="button"
-            >
-              {t("createTree")}
-            </button>
+            {canCreateTree ? <button
+                className="button primary"
+                onClick={() => actions.createTree(data.language === "id" ? "Silsilah Keluarga Saya" : "My Family Tree")}
+                type="button"
+              >
+                {t("createTree")}
+              </button> : null}
           </section>
         )}
       </main>
@@ -517,7 +506,7 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         </Modal>
       ) : null}
 
-      {activeTree && editingPerson ? (
+      {activeTree && editingPerson && canEditActiveTree ? (
         <PersonEditor
           actions={actions}
           language={data.language}
@@ -532,7 +521,7 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         />
       ) : null}
 
-      {relativeTarget ? (
+      {relativeTarget && canEditActiveTree ? (
         <RelativeDialog
           actions={actions}
           language={data.language}
@@ -558,20 +547,16 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         />
       ) : null}
 
-      {rightPanel === "settings" && pro.sync.phase !== "conflict" ? (
+      {rightPanel === "settings" ? (
         <SettingsDialog
           actions={actions}
           data={data}
           onClose={() => setRightPanel(undefined)}
-          pro={pro}
           t={t}
         />
       ) : null}
 
-      {pro.paywallOpen ? <ProPaywallDialog pro={pro} t={t} /> : null}
-      {pro.sync.phase === "conflict" ? <SyncResolutionDialog pro={pro} t={t} /> : null}
-
-      {activeTree && rightPanel === "share" ? (
+      {activeTree && rightPanel === "share" && canUseShare ? (
         <SharePanel
           data={data}
           exportPng={(privacy) => canvasRef.current?.exportPng(privacy) ?? Promise.reject(new Error("Canvas is not ready."))}
@@ -594,8 +579,12 @@ export function App({ initialPanel }: { initialPanel?: "settings" } = {}) {
         />
       ) : null}
 
-      {rightPanel === "privacy" ? (
-        <PrivacyPanel onClose={() => setRightPanel(undefined)} syncEnabled={pro.sync.enabled} t={t} />
+      {rightPanel === "install" ? (
+        <InstallAppPanel onClose={() => setRightPanel(undefined)} t={t} />
+      ) : null}
+
+      {rightPanel === "admin" && auth.user?.role === "admin" ? (
+        <AdminUsersPanel onClose={() => setRightPanel(undefined)} t={t} />
       ) : null}
 
       {rightPanel === "report" ? (

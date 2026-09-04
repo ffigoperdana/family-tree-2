@@ -74,6 +74,9 @@ export interface FamilyTree {
   createdAt: string;
   updatedAt: string;
   lastSelectedPersonId?: string;
+  kind?: "canonical" | "personal";
+  ownerId?: string;
+  revision?: number;
 }
 
 export interface Person {
