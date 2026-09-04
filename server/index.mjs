@@ -409,12 +409,14 @@ const requestOrigin = (request) => {
   }
 };
 
+const expectedRequestOrigin = (request) => PUBLIC_APP_ORIGIN ?? requestOrigin(request);
+
 const isSameOrigin = (request) => {
   const origin = request.headers.origin;
   if (!origin) return true;
   try {
     const parsed = new URL(origin);
-    return parsed.origin.toLowerCase() === requestOrigin(request)?.toLowerCase();
+    return parsed.origin.toLowerCase() === expectedRequestOrigin(request)?.toLowerCase();
   } catch {
     return false;
   }
