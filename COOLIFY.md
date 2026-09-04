@@ -76,3 +76,12 @@ npm run smoke
 ```
 
 Jangan expose konfigurasi compose lokal ke internet.
+
+## GitHub Actions
+
+Workflow `.github/workflows/docker-ci.yml` berjalan pada pull request dan push ke
+`main` yang mengubah Dockerfile, Compose, server, atau web. Workflow tersebut
+memvalidasi konfigurasi Compose, membuild image yang sama, menunggu health check,
+menguji `/health` dan `/ready`, lalu menjalankan smoke test RBAC/BOLA/CSRF/share
+di dalam container. Jika workflow hijau, image sudah melewati parity check dasar
+sebelum dipilih sebagai source deployment Coolify.
