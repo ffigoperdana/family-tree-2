@@ -2,12 +2,16 @@
 
 Repository ini sudah siap dibuild dengan `Dockerfile` di root. Container aplikasi
 mendengarkan pada port `8080` dan menyediakan health check pada `/health`.
+`docker-compose.yml` root juga dapat dipakai sebagai resource Docker Compose di
+Coolify: file tersebut hanya menjalankan app dan mengambil seluruh environment dari
+Coolify, tanpa credential database atau secret default.
 
 ## Konfigurasi aplikasi
 
 Di Coolify, buat resource dari GitHub repository ini dengan build method Dockerfile
-dan exposed port `8080`. Tambahkan persistent PostgreSQL terpisah (jangan memakai
-database container tanpa volume untuk production), lalu isi environment variables:
+atau Docker Compose dan exposed port `8080`. Hubungkan ke persistent PostgreSQL
+terpisah (jangan memakai `docker-compose.local.yml` untuk production), lalu isi
+environment variables berikut di halaman Environment Coolify:
 
 ```text
 NODE_ENV=production
@@ -23,7 +27,9 @@ PUBLIC_APP_ORIGIN=https://soenarto.fgdev.tech
 
 `BOOTSTRAP_ADMIN_*` hanya dipakai saat belum ada admin aktif. Setelah login admin
 berhasil dan database sudah persisten, hapus kedua variable bootstrap tersebut dari
-environment production. Jangan memakai password contoh pada `docker-compose.yml`.
+environment production. `POSTGRES_DB`, `POSTGRES_USER`, dan `POSTGRES_PASSWORD`
+hanya diperlukan untuk override lokal, bukan untuk deployment dengan PostgreSQL
+terpisah.
 
 `SESSION_SECRET` harus berbeda dari contoh lokal. Buat secara acak, misalnya dengan
 password manager atau generator secret yang tersedia di server.
@@ -62,17 +68,18 @@ Firestore, Google Cloud Storage, atau `SHARE_API_ORIGIN` tambahan.
 ## Uji lokal
 
 ```text
-docker compose up -d --build
-docker compose ps
+copy .env.example .env.local
+# Edit .env.local dan ganti semua nilai CHANGE_ME.
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml up -d --build
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml ps
 ```
 
-Buka `http://127.0.0.1:8080`. Compose lokal memakai PostgreSQL volume bernama
-`soenarto-postgres` dan kredensial bootstrap khusus development. Smoke test RBAC/BOLA
-dapat dijalankan dengan:
+Buka `http://127.0.0.1:8080`. `docker-compose.local.yml` menambahkan PostgreSQL
+lokal dengan volume bernama `soenarto-postgres`; file itu tidak dipakai Coolify.
+Smoke test RBAC/BOLA dapat dijalankan dengan:
 
 ```text
-cd server
-npm run smoke
+docker compose --env-file .env.local -f docker-compose.yml -f docker-compose.local.yml exec --no-TTY app npm --prefix /app/server run smoke
 ```
 
 Jangan expose konfigurasi compose lokal ke internet.

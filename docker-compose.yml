@@ -1,37 +1,15 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: soenarto
-      POSTGRES_USER: soenarto
-      POSTGRES_PASSWORD: soenarto-local-only
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U soenarto -d soenarto"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-    volumes:
-      - soenarto-postgres:/var/lib/postgresql/data
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      NODE_ENV: development
-      PORT: 8080
-      COOKIE_SECURE: "0"
-      DATABASE_URL: postgres://soenarto:soenarto-local-only@db:5432/soenarto
-      SESSION_SECRET: local-compose-session-secret-change-before-production-1234567890
-      BOOTSTRAP_ADMIN_USERNAME: admin
-      BOOTSTRAP_ADMIN_PASSWORD: LocalAdminPassword!ChangeMe123
-      CANONICAL_TREE_TITLE: Keluarga Haji Soenarto
-      PUBLIC_APP_ORIGIN: http://localhost:8080
-    ports:
-      - "127.0.0.1:8080:8080"
-
-volumes:
-  soenarto-postgres:
+      NODE_ENV: ${NODE_ENV:?NODE_ENV must be set}
+      PORT: ${PORT:?PORT must be set}
+      COOKIE_SECURE: ${COOKIE_SECURE:?COOKIE_SECURE must be set}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      CANONICAL_TREE_TITLE: ${CANONICAL_TREE_TITLE:?CANONICAL_TREE_TITLE must be set}
+      PUBLIC_APP_ORIGIN: ${PUBLIC_APP_ORIGIN:?PUBLIC_APP_ORIGIN must be set}
