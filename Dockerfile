@@ -1,8 +1,11 @@
 FROM node:22-alpine AS web-build
 
 WORKDIR /app/web
+# Vite and TypeScript are devDependencies, so the frontend build must always
+# install them even when Coolify forwards NODE_ENV=production as a build arg.
+ENV NODE_ENV=development
 COPY web/package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 COPY web/ ./
 RUN npm run build
 

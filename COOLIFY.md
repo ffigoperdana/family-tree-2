@@ -34,6 +34,20 @@ terpisah.
 `SESSION_SECRET` harus berbeda dari contoh lokal. Buat secara acak, misalnya dengan
 password manager atau generator secret yang tersedia di server.
 
+## Pengaturan environment di Coolify
+
+Untuk semua variable aplikasi di atas, gunakan pengaturan `Available at Runtime`:
+
+- `Available at Buildtime`: **OFF**
+- `Available at Runtime`: **ON**
+
+Ini terutama wajib untuk `NODE_ENV`, `DATABASE_URL`, `SESSION_SECRET`, dan kedua
+variable bootstrap. Jangan kirim database URL atau secret sebagai build argument
+karena build argument dapat masuk ke metadata proses build. Dockerfile sudah memaksa
+dependency frontend tetap terpasang walaupun `NODE_ENV=production` terlanjur ikut
+terkirim saat build, tetapi checkbox buildtime tetap harus dimatikan untuk menjaga
+secret hanya tersedia di runtime.
+
 ## Urutan reverse proxy sesuai homelab
 
 1. Set domain Coolify ke `http://soenarto.fgdev.tech`, exposed port aplikasi `8080`,
